@@ -110,11 +110,28 @@ export function findMatchingRoute(
     .replace(/\/+/g, "/") // collapse slashes
     .replace(/(.+?)\/+$/, "$1"); // trim trailing slashes
 
+  // Routers match parameters on the raw path, so a decoded "/" or "\" inside a
+  // segment stays in that segment. Match on that view too, so it can't skip a
+  // parameterised route.
+  const segmentPath = pathWithoutQuery
+    .split("/")
+    .map(segment => {
+      try {
+        return decodeURIComponent(segment).replace(/\//g, "%2F").replace(/\\/g, "%5C");
+      } catch {
+        return segment;
+      }
+    })
+    .join("/")
+    .replace(/\/+/g, "/")
+    .replace(/(.+?)\/+$/, "$1");
+
   const upperMethod = method.toUpperCase();
   const findMatchingRoutes = (candidateMethod: string): RoutePattern[] =>
     routePatterns.filter(
       ({ pattern, verb }) =>
-        pattern.test(normalizedPath) && (verb === "*" || candidateMethod === verb),
+        (pattern.test(normalizedPath) || pattern.test(segmentPath)) &&
+        (verb === "*" || candidateMethod === verb),
     );
 
   // HTTP routers commonly dispatch HEAD through GET. Preserve an explicit

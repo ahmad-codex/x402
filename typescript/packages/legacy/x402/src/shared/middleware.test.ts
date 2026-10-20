@@ -110,6 +110,18 @@ describe("computeRoutePatterns", () => {
     expect(findMatchingRoute(patterns, "/api/alice/files/report", "GET")).toEqual(patterns[0]);
   });
 
+  it.each([
+    "/api/users/a%2Fb",
+    "/api/users/a%2fb",
+    "/api/users/a%5Cb",
+    "/api/users/a\\b",
+    "/api/users/%2F",
+  ])("should match route parameters containing encoded separators: %s", path => {
+    const patterns = computeRoutePatterns({ "/api/users/[id]": "$0.01" });
+
+    expect(findMatchingRoute(patterns, path, "GET")).toEqual(patterns[0]);
+  });
+
   it("should handle route parameters", () => {
     const routes: RoutesConfig = {
       "/api/users/[id]": "$0.01",
