@@ -122,6 +122,13 @@ describe("computeRoutePatterns", () => {
     expect(findMatchingRoute(patterns, path, "GET")).toEqual(patterns[0]);
   });
 
+  it("should not match an encoded static route for a raw backslash", () => {
+    const patterns = computeRoutePatterns({ "/api/users/a%5Cb": "$0.01" });
+
+    expect(findMatchingRoute(patterns, "/api/users/a\\b", "GET")).toBeUndefined();
+    expect(findMatchingRoute(patterns, "/api/users/a%5Cb", "GET")).toEqual(patterns[0]);
+  });
+
   it("should handle route parameters", () => {
     const routes: RoutesConfig = {
       "/api/users/[id]": "$0.01",
