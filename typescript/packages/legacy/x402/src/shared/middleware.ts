@@ -110,29 +110,15 @@ export function findMatchingRoute(
     .replace(/\/+/g, "/") // collapse slashes
     .replace(/(.+?)\/+$/, "$1"); // trim trailing slashes
 
-  // Routers split the raw path, so an encoded "/" or "\" stays inside its
+  // Routers match on the raw path, so an encoded "/" or "\" stays inside its
   // segment. Match on that view too, so it can't skip a parameterised route.
-  const segmentPath = pathWithoutQuery
-    .split("/")
-    .map(segment => {
-      try {
-        return segment
-          .split(/(%2F|%5C)/i)
-          .map((part, i) => (i % 2 ? part.toUpperCase() : decodeURIComponent(part)))
-          .join("");
-      } catch {
-        return segment;
-      }
-    })
-    .join("/")
-    .replace(/\/+/g, "/")
-    .replace(/(.+?)\/+$/, "$1");
+  const rawPath = pathWithoutQuery.replace(/\/+/g, "/").replace(/(.+?)\/+$/, "$1");
 
   const upperMethod = method.toUpperCase();
   const findMatchingRoutes = (candidateMethod: string): RoutePattern[] =>
     routePatterns.filter(
       ({ pattern, verb }) =>
-        (pattern.test(normalizedPath) || pattern.test(segmentPath)) &&
+        (pattern.test(normalizedPath) || pattern.test(rawPath)) &&
         (verb === "*" || candidateMethod === verb),
     );
 

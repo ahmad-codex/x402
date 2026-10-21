@@ -61,4 +61,25 @@ describe("route matching on a real Express router", () => {
     expect(await statusOf(app, "/api/users/a\\b")).toBe(200);
     expect(await statusOf(app, "/api/users/a%5Cb")).toBe(402);
   });
+
+  it.each(["/api/users/%61%5Cb", "/api/users/a%5C%62", "/api/users/%61%2Fb", "/api/users/a%2F%62"])(
+    "keeps other escapes apart from an encoded static route: %s",
+    async path => {
+      const app = express();
+      app.use(
+        paymentMiddleware(payTo, {
+          "GET /api/users/a%5Cb": "$0.01",
+          "GET /api/users/a%2Fb": "$0.01",
+        }),
+      );
+      app.get(["/api/users/a%5Cb", "/api/users/a%2Fb"], (_req, res) => {
+        res.send("paid content");
+      });
+      app.get("/api/users/:id", (_req, res) => {
+        res.send("public");
+      });
+
+      expect(await statusOf(app, path)).toBe(200);
+    },
+  );
 });

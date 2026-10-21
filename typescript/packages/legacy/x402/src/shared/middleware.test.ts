@@ -129,6 +129,18 @@ describe("computeRoutePatterns", () => {
     expect(findMatchingRoute(patterns, "/api/users/a%5Cb", "GET")).toEqual(patterns[0]);
   });
 
+  it.each(["/api/users/%61%5Cb", "/api/users/a%5C%62", "/api/users/%61%2Fb"])(
+    "should not match an encoded static route through other escapes: %s",
+    path => {
+      const patterns = computeRoutePatterns({
+        "/api/users/a%5Cb": "$0.01",
+        "/api/users/a%2Fb": "$0.01",
+      });
+
+      expect(findMatchingRoute(patterns, path, "GET")).toBeUndefined();
+    },
+  );
+
   it("should handle route parameters", () => {
     const routes: RoutesConfig = {
       "/api/users/[id]": "$0.01",
